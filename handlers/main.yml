@@ -1,0 +1,21 @@
+---
+- name: Start nginx
+  service: name=nginx state=started
+
+- name: Start dovecot
+  service: name=dovecot state=started
+
+- name: Start postfix
+  service: name=postfix state=started
+
+- name: Start nginx
+  service: name=nginx state=started
+
+- name: Restart dovecot
+  service: name=dovecot state=restarted
+
+- name: Restart postfix
+  service: name=postfix state=restarted
+
+- name: Restart nginx
+  service: name=nginx state=restarted

@@ -1,0 +1,59 @@
+smtpd_banner = $myhostname ESMTP $mail_name
+biff=no
+append_dot_mydomain = no
+queue_directory = /var/spool/postfix
+command_directory = /usr/sbin
+daemon_directory = /usr/lib/postfix
+data_directory = /var/lib/postfix
+mail_owner = postfix
+
+myhostname = {{ server_hostname }}
+mydomain = {{ server_domainname }}
+
+inet_interfaces = all
+inet_protocols = ipv4
+mydestination = localhost
+
+unknown_local_recipient_reject_code = 550
+
+smtpd_sasl_auth_enable = yes
+smtpd_tls_cert_file=/etc/dovecot/dovecot.pem
+smtpd_tls_key_file=/etc/dovecot/private/dovecot.pem
+smtpd_use_tls=yes
+smtpd_tls_auth_only=yes
+
+smtpd_sasl_type = dovecot
+smtpd_sasl_path = private/auth
+smtpd_sasl_auth_enable = yes
+
+smtpd_recipient_restrictions =
+  permit_sasl_authenticated,
+  permit_mynetworks,
+  reject_unauth_destination
+
+virtual_transport = lmtp:unix:private/dovecot-lmtp
+virtual_alias_domains = 
+virtual_mailbox_domains = mysql:/etc/postfix/mysql-virtual-mailbox-domains.cf
+virtual_mailbox_maps = mysql:/etc/postfix/mysql-virtual-mailbox-maps.cf
+virtual_alias_maps = mysql:/etc/postfix/mysql-virtual-alias-maps.cf, mysql:/etc/postfix/mysql-virtual-email2email.cf
+alias_maps = hash:/etc/aliases
+alias_database = hash:/etc/aliases
+
+
+mailbox_transport = lmtp:unix:/var/lib/imap/socket/lmtp
+
+debug_peer_list = 127.0.0.1
+debug_peer_level = 2
+debugger_command =
+  PATH=/bin:/usr/bin:/usr/local/bin:/usr/X11R6/bin
+  ddd $daemon_directory/$process_name $process_id & sleep 5
+
+
+sendmail_path = /usr/sbin/sendmail.postfix
+newaliases_path = /usr/bin/newaliases.postfix
+mailq_path = /usr/bin/mailq.postfix
+setgid_group = postdrop
+
+html_directory = no
+manpage_directory = /usr/share/man
+

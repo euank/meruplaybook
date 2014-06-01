@@ -1,0 +1,9 @@
+user = {{ mysql_mail_user }}
+password = {{ mysql_mail_password }}
+hosts = 127.0.0.1
+dbname = {{ mysql_mail_db }}
+
+
+# This one's the big one; forward foo-.* to foo. It selects foo@domain for foo-.* so it delivers to the right virtual mailbox
+query = SELECT CONCAT(U.user, '@', D.name) FROM virtual_users AS U LEFT JOIN virtual_domains AS D ON U.domain_id=D.id WHERE '%s'=CONCAT(U.user , '@', D.name) OR '%s' LIKE CONCAT(REPLACE(REPLACE(REPLACE(U.user, '\\', '\\\\'), '_', '\_'), '%%', '\%%'),  '-%%@',  REPLACE(REPLACE(REPLACE(D.name, '\\', '\\\\'), '_', '\_'), '%%', '\%%'))
+

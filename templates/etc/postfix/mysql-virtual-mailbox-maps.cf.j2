@@ -1,0 +1,7 @@
+user = {{ mysql_mail_user }}
+password = {{ mysql_mail_password }}
+hosts = 127.0.0.1
+dbname = {{ mysql_mail_db }}
+
+# Do we have this mailbox?
+query = SELECT 1 FROM virtual_users AS U LEFT JOIN virtual_domains AS D ON U.domain_id=D.id WHERE '%s'=CONCAT(U.user , '@', D.name)

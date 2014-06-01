@@ -1,0 +1,8 @@
+driver = mysql
+connect = host=127.0.0.1 dbname={{ mysql_mail_db }} user={{ mysql_mail_user}} password={{ mysql_mail_password }}
+default_pass_scheme = SHA512-CRYPT
+
+# The query here need not worry about foo-.* because that got to foo's mailbox. 
+# The smtp server accepts foo-.* so you can reply to any of them.
+password_query = SELECT password FROM virtual_users AS V LEFT JOIN virtual_domains AS D ON V.domain_id=D.id WHERE D.name='%d' AND V.user='%n'
+

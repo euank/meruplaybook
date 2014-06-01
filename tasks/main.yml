@@ -1,0 +1,107 @@
+---
+- name: Install common packages
+  apt: pkg={{ item }} state=installed
+  with_items: system_packages
+
+- name: Install mysql
+  apt: pkg={{ item }} state=installed
+  with_items: mysql_packages
+
+- name: Start mysql
+  service: name=mysql state=started
+
+- name: Init mysql
+  mysql_user: name=root host={{ item }} password={{ mysql_root_password }}
+  with_items:
+    - "{{ansible_hostname}}"
+    - 127.0.0.1
+    - ::1
+    - localhost
+
+- name: copy .my.cnf file with root password
+  template: src=root/my.cnf.j2 dest=/root/.my.cnf owner=root mode=0600
+
+- name: delete anonymous MySQL server user for {{server_hostname}}
+  mysql_user: user="" host="{{ ansible_hostname }}" state="absent"
+
+- name: delete anonymous MySQL server user for localhost
+  mysql_user: user="" state="absent"
+
+- name: remove the MySQL test database
+  mysql_db: db=test state=absent
+
+- name: Create the MySQL mail database
+  mysql_db: db={{mysql_mail_db}} state=present
+
+- name: Add mysql mail user
+  mysql_user: user="{{mysql_mail_user}}" password="{{mysql_mail_password}}" priv="{{mysql_mail_db}}.*:ALL"
+
+- name: Install mail packages
+  apt: pkg={{ item }} state=installed
+  with_items: mail_packages
+  register: installed_dovecot
+  notify:
+    - Start postfix
+    - Start dovecot
+
+- name: Purge default configs
+  file: state=absent path=/etc/{{ item }}
+  with_items:
+    - dovecot/conf.d
+  when:
+    installed_dovecot|changed
+
+# {{{ postfix configure
+- name: configure postfix
+  template: src=etc/postfix/{{item}}.j2 dest=/etc/postfix/{{ item }}
+  with_items:
+    - main.cf
+    - master.cf
+    - mysql-virtual-alias-maps.cf
+    - mysql-virtual-email2email.cf
+    - mysql-virtual-mailbox-maps.cf
+    - mysql-virtual-mailbox-domains.cf
+  notify:
+    - Restart postfix
+# }}}
+
+# {{{ dovecot configure
+- name: ensure conf.d is there
+  file: state=directory path=/etc/dovecot/conf.d
+
+- name: configure dovecot
+  template: src=etc/dovecot/{{ item }}.j2 dest=/etc/dovecot/{{ item }}
+  with_items:
+    - dovecot-sql.conf.ext
+    - dovecot.conf
+    - conf.d/10-auth.conf
+    - conf.d/10-mail.conf
+    - conf.d/10-master.conf
+    - conf.d/10-ssl.conf
+    - conf.d/auth-sql.conf.ext
+  notify:
+    - Restart dovecot
+
+- name: Add email group
+  group: gid=5000 name=vmail
+
+- name: Add email user
+  user: group=vmail name=vmail uid=5000 home=/var/mail/
+
+- name: Own mail
+  file: owner=vmail group=vmail path=/var/mail/ recurse=yes state=directory
+
+- name: Create vhosts folder
+  file: path=/var/mail/vhosts state=directory owner=vmail group=vmail
+# }}}
+
+# {{{ Create self-signed ssl certs
+# TODO, make this a copy if you provide them locally
+- name: create self-signed SSL cert
+  command: openssl req -new -nodes -x509 -subj "/C=NL/ST=Meru/L=Meru/O=Meru/CN={{ server_hostname }}" -days 3650 -keyout /etc/dovecot/private/dovecot.pem -out /etc/dovecot/dovecot.pem -extensions v3_ca creates=/etc/dovecot/dovecot.pem
+  notify:
+    - Restart nginx
+    - Restart postfix
+    - Restart dovecot
+# }}}
+

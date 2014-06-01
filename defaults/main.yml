@@ -1,0 +1,30 @@
+---
+server_hostname: mx.example.com
+server_domainname: example.com
+system_packages:
+  - build-essential
+  - git
+  - ca-certificates
+  - libreadline-dev
+  - libpcre3-dev
+  - libssl-dev
+  - nginx
+  - vim
+mysql_packages:
+  - mariadb-server
+  - mariadb-client
+  - libmariadbclient-dev
+  - python-mysqldb
+mysql_root_password: gIn6ulbA1sZVEY9hxd18qhCKG5H7gJoQi4paULJ
+mysql_old_password:
+mysql_mail_user:  mailuser
+mysql_mail_password: ZJfvrF96vZ2e1YqrcOXZNchZrIYbG7AJ
+mysql_mail_db: mailserver
+mail_packages:
+  - postfix
+  - postfix-mysql
+  - dovecot-core
+  - dovecot-lmtpd
+  - dovecot-imapd
+  - dovecot-pop3d
+  - dovecot-mysql

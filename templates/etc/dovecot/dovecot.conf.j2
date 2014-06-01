@@ -1,0 +1,12 @@
+protocols = lmtp imap pop3
+protocol lmtp {
+  postmaster_address = postmaster@{{ server_domainname }}
+}
+
+auth_verbose=yes
+auth_debug=yes
+verbose_ssl=yes
+
+dict {
+}
+!include conf.d/*.conf

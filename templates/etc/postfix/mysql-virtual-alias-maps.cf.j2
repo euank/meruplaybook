@@ -1,0 +1,8 @@
+user = {{ mysql_mail_user }}
+password = {{ mysql_mail_password }}
+hosts = 127.0.0.1
+dbname = {{ mysql_mail_db }}
+
+# This query matches alias source(-.*)?. The %% stuff is because it's escaped twice; once by postfix and once by mysql. The REPLACE stuff is to make the user-supplied strings safe for a LIKE
+# essentially this is source == db.source OR source == db.source-.*
+query = SELECT destination FROM virtual_aliases AS A LEFT JOIN virtual_domains AS D ON A.domain_id=D.id WHERE '%s'=CONCAT(A.source, '@', D.name) OR '%s' LIKE CONCAT(REPLACE(REPLACE(REPLACE(A.source, '\\', '\\\\'), '_', '\_'), '%%', '\%%'),  '-%%@',  REPLACE(REPLACE(REPLACE(D.name, '\\', '\\\\'), '_', '\_'), '%%', '\%%'))

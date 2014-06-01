@@ -1,0 +1,7 @@
+user = {{ mysql_mail_user }}
+password = {{ mysql_mail_password }}
+hosts = 127.0.0.1
+dbname = {{ mysql_mail_db }}
+
+# Do we manage this domain?
+query = SELECT 1 FROM virtual_domains WHERE name='%s'
